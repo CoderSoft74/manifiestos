@@ -1,0 +1,175 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: services-databases
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data-pvc-0
+  namespace: services-databases
+  labels:
+    app: redis
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data-pvc-1
+  namespace: services-databases
+  labels:
+    app: redis
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet  #  CAMBIADO: StatefulSet para manejar múltiples réplicas con PVCs independientes
+metadata:
+  name: redis
+  namespace: services-databases
+  labels:
+    app: redis
+    service: databases
+spec:
+  serviceName: redis-svc
+  replicas: 1  #  CAMBIADO: de 1 a 2 réplicas
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+        service: databases
+    spec:
+      affinity:
+        podAntiAffinity:  #  MEJORADO: ahora REQUIERE que estén en diferentes nodos
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - redis
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: redis
+        image: 172.24.7.124:5000/redis:6.2.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+          name: redis
+        resources:
+          requests:
+            cpu: "700m"
+            memory: "1Gi"
+          limits:
+            cpu: "700m"
+            memory: "2Gi"
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 15
+          periodSeconds: 60
+          timeoutSeconds: 20
+          failureThreshold: 5
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          timeoutSeconds: 10
+        args:
+        - --appendonly
+        - "yes"
+        - --save
+        - "900 1"
+        - --save
+        - "300 10"
+        - --save
+        - "60 10000"
+        - --port
+        - "6379"
+  volumeClaimTemplates:  # 🟢 NUEVO: cada réplica tiene su propio PVC
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: longhorn
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-svc
+  namespace: services-databases
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  clusterIP: None  #  Headless service para StatefulSet
+  selector:
+    app: redis
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-loadbalancer
+  namespace: services-databases
+  labels:
+    app: redis
+spec:
+  type: LoadBalancer  #  CAMBIADO: de NodePort a LoadBalancer (MetalLB)
+  selector:
+    app: redis
+  ports:
+  - name: redis
+    port: 6380  # Puerto externo
+    targetPort: 6379
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: redis-ingress
+  namespace: services-databases
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "TCP"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: redis.172.24.7.120.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: redis-svc
+            port:
+              number: 6379

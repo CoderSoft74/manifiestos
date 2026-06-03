@@ -1,0 +1,194 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: services-databases
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongo-secret
+  namespace: services-databases
+type: Opaque
+stringData:
+  MONGO_INITDB_ROOT_PASSWORD: "M0ng0d813"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-config
+  namespace: services-databases
+data:
+  MONGO_INITDB_ROOT_USERNAME: "root"
+  MONGO_INITDB_DATABASE: "admin"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-soberania
+  namespace: services-databases
+  labels:
+    app: mongo-soberania
+    service: databases
+spec:
+  serviceName: mongo-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-soberania
+  template:
+    metadata:
+      labels:
+        app: mongo-soberania
+        service: databases
+    spec:
+      # Fijar al nodo kube03
+      nodeSelector:
+        kubernetes.io/hostname: "kube03"
+      
+      # Asegurar que solo se ejecute en kube03
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - "kube03"
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - mongo-soberania
+              topologyKey: kubernetes.io/hostname
+      
+      # SecurityContext para MongoDB (usuario mongodb suele ser uid 999)
+      securityContext:
+        fsGroup: 999
+      
+      # InitContainer para asegurar permisos correctos
+      initContainers:
+      - name: fix-permissions
+        image: 172.24.7.124:5000/mongo:8.0
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "=== Arreglando permisos para MongoDB ==="
+          # Asegurar que el directorio de datos tenga los permisos correctos
+          chown -R 999:999 /data/db
+          chmod -R 755 /data/db
+          echo "=== Permisos arreglados ==="
+          ls -la /data/db
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+      
+      containers:
+      - name: mongo
+        image: 172.24.7.124:5000/mongo:8.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 27017
+          name: mongo
+          protocol: TCP
+        
+        # Ejecutar como usuario mongodb
+        securityContext:
+          runAsUser: 999
+          runAsGroup: 999
+        
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: mongo-config
+              key: MONGO_INITDB_ROOT_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: MONGO_INITDB_ROOT_PASSWORD
+        - name: MONGO_INITDB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: mongo-config
+              key: MONGO_INITDB_DATABASE
+        
+        resources:
+          requests:
+            cpu: "1000m"    # 1.0 CPU
+            memory: "1Gi"    # 1024 MB mínimo
+          limits:
+            cpu: "1000m"     # 1.0 CPU
+            memory: "2Gi"     # 2GB máximo (margen para MongoDB)
+        
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+        
+        # Health checks
+        livenessProbe:
+          tcpSocket:
+            port: 27017
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 27017
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 10
+          failureThreshold: 3
+  
+  volumeClaimTemplates:
+  - metadata:
+      name: mongo-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: longhorn
+      resources:
+        requests:
+          storage: 20Gi  # Ajusta según necesidad
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-svc
+  namespace: services-databases
+  labels:
+    app: mongo-soberania
+spec:
+  type: ClusterIP
+  selector:
+    app: mongo-soberania
+  ports:
+  - name: mongo
+    port: 27017
+    targetPort: 27017
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-loadbalancer
+  namespace: services-databases
+  labels:
+    app: mongo-soberania
+spec:
+  type: LoadBalancer
+  selector:
+    app: mongo-soberania
+  ports:
+  - name: mongo
+    port: 27017
+    targetPort: 27017
+    protocol: TCP

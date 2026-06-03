@@ -1,0 +1,641 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: services-databases
+---
+# ============================================
+# PERSISTENT VOLUMES (PVs)
+# ============================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-conf-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/nifi-current/conf
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-content-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/nifi-current/content_repository
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-database-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/nifi-current/database_repository
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-flowfile-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/nifi-current/flowfile_repository
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-lib-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/nifi-current/lib
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-logs-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/nifi-current/logs
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-nar-extensions-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/nifi-current/nar_extensions
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-provenance-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/nifi-current/provenance_repository
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-state-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/nifi-current/state
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+# NUEVO PV para certificados
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-certs-pv
+  namespace: services-databases
+spec:
+  capacity:
+    storage: 100Mi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  local:
+    path: /drix/2026/nifi/certs
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kube03
+---
+# ============================================
+# PERSISTENT VOLUME CLAIMS (PVCs)
+# ============================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-conf-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: nifi-conf-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-content-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: nifi-content-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-database-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: nifi-database-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-flowfile-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: nifi-flowfile-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-lib-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+  volumeName: nifi-lib-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-logs-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: nifi-logs-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-nar-extensions-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+  volumeName: nifi-nar-extensions-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-provenance-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: nifi-provenance-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-state-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: nifi-state-pv
+---
+# NUEVO PVC para certificados
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-certs-pvc
+  namespace: services-databases
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 100Mi
+  volumeName: nifi-certs-pv
+---
+# ============================================
+# SERVICE
+# ============================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: nifi
+  namespace: services-databases
+  labels:
+    app: nifi
+spec:
+  type: NodePort
+  ports:
+    - port: 9443
+      targetPort: 9443
+      nodePort: 30443
+      name: https
+    - port: 10443
+      targetPort: 10443
+      nodePort: 30444
+      name: remote-input
+  selector:
+    app: nifi
+---
+# ============================================
+# STATEFULSET
+# ============================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nifi
+  namespace: services-databases
+  labels:
+    app: nifi
+spec:
+  serviceName: nifi
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nifi
+  template:
+    metadata:
+      labels:
+        app: nifi
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+      nodeSelector:
+        kubernetes.io/hostname: kube03
+      
+      # VOLÚMENES (TODOS LOS PVCs)
+      volumes:
+        - name: conf
+          persistentVolumeClaim:
+            claimName: nifi-conf-pvc
+        - name: content-repository
+          persistentVolumeClaim:
+            claimName: nifi-content-pvc
+        - name: database-repository
+          persistentVolumeClaim:
+            claimName: nifi-database-pvc
+        - name: flowfile-repository
+          persistentVolumeClaim:
+            claimName: nifi-flowfile-pvc
+        - name: lib
+          persistentVolumeClaim:
+            claimName: nifi-lib-pvc
+        - name: logs
+          persistentVolumeClaim:
+            claimName: nifi-logs-pvc
+        - name: nar-extensions
+          persistentVolumeClaim:
+            claimName: nifi-nar-extensions-pvc
+        - name: provenance-repository
+          persistentVolumeClaim:
+            claimName: nifi-provenance-pvc
+        - name: state
+          persistentVolumeClaim:
+            claimName: nifi-state-pvc
+        - name: certs
+          persistentVolumeClaim:
+            claimName: nifi-certs-pvc
+
+      containers:
+        - name: nifi
+          image: 172.24.7.124:5000/apache/nifi:2.1.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 9443
+              name: https
+            - containerPort: 10443
+              name: remote-input
+          env:
+            # Usuario único para autenticación
+            - name: SINGLE_USER_CREDENTIALS_USERNAME
+              value: "nifi"
+            - name: SINGLE_USER_CREDENTIALS_PASSWORD
+              value: "nifinifinifi"
+            
+            # Configuración HTTPS
+            - name: NIFI_WEB_HTTPS_PORT
+              value: "9443"
+            - name: NIFI_WEB_HTTPS_HOST
+              value: "0.0.0.0"
+            - name: NIFI_WEB_HTTP_PORT
+              value: ""
+            - name: NIFI_WEB_HTTP_HOST
+              value: ""
+            
+            # Configuración Remote Input (Site-to-Site)
+            - name: NIFI_REMOTE_INPUT_HTTPS_ENABLED
+              value: "true"
+            - name: NIFI_REMOTE_INPUT_HTTP_ENABLED
+              value: "false"
+            - name: NIFI_REMOTE_INPUT_HTTP_PORT
+              value: ""
+            - name: NIFI_REMOTE_INPUT_SOCKET_PORT
+              value: "10443"
+            
+            # Configuración de keystore/truststore
+            - name: NIFI_SECURITY_KEYSTORE
+              value: "/opt/nifi/certs/nifi.p12"
+            - name: NIFI_SECURITY_KEYSTOREPASSWD
+              value: "kube.2026"
+            - name: NIFI_SECURITY_KEYPASSWD
+              value: "kube.2026"
+            - name: NIFI_SECURITY_KEYSTORE_TYPE
+              value: "PKCS12"
+            - name: NIFI_SECURITY_TRUSTSTORE
+              value: "/opt/nifi/certs/intermediate_trustore.p12"
+            - name: NIFI_SECURITY_TRUSTSTOREPASSWD
+              value: "kube.2026"
+            - name: NIFI_SECURITY_TRUSTSTORE_TYPE
+              value: "PKCS12"
+            
+            # Proxy configuration
+            - name: NIFI_WEB_PROXY_HOST
+              value: "172.24.7.122:30443"
+            
+            # Otras configuraciones
+            - name: NIFI_SENSITIVE_PROPS_KEY
+              value: "nifi-sensitiva-2026"
+          
+          # COMMAND PERSONALIZADO PARA CONFIGURAR HTTPS
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "========================================="
+              echo "CONFIGURANDO NIFI CON HTTPS"
+              echo "========================================="
+              
+              # Esperar a que el archivo de configuración esté disponible
+              while [ ! -f /opt/nifi/nifi-current/conf/nifi.properties ]; do
+                echo "Esperando a que nifi.properties esté disponible..."
+                sleep 1
+              done
+              
+              echo "=== VERIFICANDO PERMISOS ==="
+              ls -la /opt/nifi/nifi-current/
+              ls -la /opt/nifi/nifi-current/logs/
+              ls -la /opt/nifi/certs/
+              id
+              
+              echo "=== CONFIGURANDO PROPIEDADES HTTPS ==="
+              # Asegurar que HTTP está deshabilitado y HTTPS habilitado
+              sed -i 's/^nifi.web.http.host=.*/nifi.web.http.host=/' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.web.http.port=.*/nifi.web.http.port=/' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.web.https.host=.*/nifi.web.https.host=0.0.0.0/' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.web.https.port=.*/nifi.web.https.port=9443/' /opt/nifi/nifi-current/conf/nifi.properties
+              
+              echo "=== CONFIGURANDO KEYSTORE/TRUSTSTORE ==="
+              # Configurar keystore
+              sed -i 's|^nifi.security.keystore=.*|nifi.security.keystore=/opt/nifi/certs/nifi.p12|' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.security.keystorePasswd=.*/nifi.security.keystorePasswd=kube.2026/' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.security.keyPasswd=.*/nifi.security.keyPasswd=kube.2026/' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.security.keystoreType=.*/nifi.security.keystoreType=PKCS12/' /opt/nifi/nifi-current/conf/nifi.properties
+              
+              # Configurar truststore
+              sed -i 's|^nifi.security.truststore=.*|nifi.security.truststore=/opt/nifi/certs/intermediate_trustore.p12|' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.security.truststorePasswd=.*/nifi.security.truststorePasswd=kube.2026/' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.security.truststoreType=.*/nifi.security.truststoreType=PKCS12/' /opt/nifi/nifi-current/conf/nifi.properties
+              
+              echo "=== CONFIGURANDO REMOTE INPUT ==="
+              # Configurar Remote Input (Site-to-Site) para HTTPS
+              sed -i 's/^nifi.remote.input.secure=.*/nifi.remote.input.secure=true/' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.remote.input.http.enabled=.*/nifi.remote.input.http.enabled=false/' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.remote.input.https.enabled=.*/nifi.remote.input.https.enabled=true/' /opt/nifi/nifi-current/conf/nifi.properties
+              sed -i 's/^nifi.remote.input.socket.port=.*/nifi.remote.input.socket.port=10443/' /opt/nifi/nifi-current/conf/nifi.properties
+              
+              echo "=== CONFIGURACIÓN ACTUAL ==="
+              grep -E "nifi.web.(http|https)" /opt/nifi/nifi-current/conf/nifi.properties
+              grep -E "nifi.security.(keystore|truststore)" /opt/nifi/nifi-current/conf/nifi.properties
+              grep -E "nifi.remote.input" /opt/nifi/nifi-current/conf/nifi.properties
+              
+              echo "=== INICIANDO NIFI CON HTTPS ==="
+              exec /opt/nifi/nifi-current/bin/nifi.sh run
+          
+          resources:
+            requests:
+              memory: "2048Mi"
+              cpu: "0.7"
+            limits:
+              memory: "2048Mi"
+              cpu: "0.7"
+          
+          volumeMounts:
+            - name: conf
+              mountPath: /opt/nifi/nifi-current/conf
+            - name: content-repository
+              mountPath: /opt/nifi/nifi-current/content_repository
+            - name: database-repository
+              mountPath: /opt/nifi/nifi-current/database_repository
+            - name: flowfile-repository
+              mountPath: /opt/nifi/nifi-current/flowfile_repository
+            - name: lib
+              mountPath: /opt/nifi/nifi-current/lib
+            - name: logs
+              mountPath: /opt/nifi/nifi-current/logs
+            - name: nar-extensions
+              mountPath: /opt/nifi/nifi-current/nar_extensions
+            - name: provenance-repository
+              mountPath: /opt/nifi/nifi-current/provenance_repository
+            - name: state
+              mountPath: /opt/nifi/nifi-current/state
+            - name: certs
+              mountPath: /opt/nifi/certs
+          
+          livenessProbe:
+            tcpSocket:
+              port: 9443
+            initialDelaySeconds: 300
+            periodSeconds: 60
+            timeoutSeconds: 20
+            failureThreshold: 3
+          
+          readinessProbe:
+            tcpSocket:
+              port: 9443
+            initialDelaySeconds: 300
+            periodSeconds: 60
+            timeoutSeconds: 20
+            failureThreshold: 3
