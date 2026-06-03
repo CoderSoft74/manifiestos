@@ -1,0 +1,382 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: microservices
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-secret
+  namespace: microservices
+type: Opaque
+stringData:
+  KEYCLOAK_ADMIN_PASSWORD: "admin"
+  KC_DB_PASSWORD: "admin"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-config
+  namespace: microservices
+data:
+  keycloak.conf: |
+    # Keycloak configuration file
+    http-enabled=true
+    http-port=5080
+    https-port=5443
+    hostname=172.24.7.125:31543
+    hostname-strict-backchannel=true
+    proxy=edge
+    features=declarative-user-profile,token-exchange
+    log-level=INFO
+    log=console,file
+    
+    # Database configuration
+    db=postgres
+    db-url=jdbc:postgresql://10.233.35.220:5432/keycloak
+    db-username=keycloak
+    db-password=${env.KC_DB_PASSWORD}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-svc
+  namespace: microservices
+  labels:
+    app: keycloak
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: keycloak
+  ports:
+  - name: http
+    port: 5080
+    targetPort: 5080
+  - name: https
+    port: 5443
+    targetPort: 5443
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-nodeport
+  namespace: microservices
+  labels:
+    app: keycloak
+spec:
+  type: NodePort
+  selector:
+    app: keycloak
+  ports:
+  - name: http
+    port: 5080
+    targetPort: 5080
+    nodePort: 30005
+  - name: https
+    port: 5443
+    targetPort: 5443
+    nodePort: 31543
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-themes-keycloak-0
+  labels:
+    app: keycloak
+    type: themes
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  local:
+    path: /drix/collective/uaa/keycloack1/themes
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - "kube05"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-exports-keycloak-0
+  labels:
+    app: keycloak
+    type: exports
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  local:
+    path: /drix/collective/uaa/keycloack1/exports
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - "kube05"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-certs-keycloak-0
+  labels:
+    app: keycloak
+    type: certs
+spec:
+  capacity:
+    storage: 200Mi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  local:
+    path: /drix/collective/uaa/keycloack1/cert
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - "kube05"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-logs-keycloak-0
+  labels:
+    app: keycloak
+    type: logs
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  local:
+    path: /drix/collective/uaa/keycloack1/data/log
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - "kube05"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-conf-keycloak-0
+  labels:
+    app: keycloak
+    type: conf
+spec:
+  capacity:
+    storage: 200Mi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  local:
+    path: /drix/collective/uaa/keycloack1/conf
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - "kube05"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: keycloak
+  namespace: microservices
+  labels:
+    app: keycloak
+    service: uaa
+spec:
+  serviceName: keycloak-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+        service: uaa
+    spec:
+      hostAliases:
+      - ip: "172.24.7.125"
+        hostnames:
+        - "postgresql-keycloak-svc.microservices.svc.cluster.local"
+        - "postgresql-keycloak-svc"
+      nodeSelector:
+        kubernetes.io/hostname: "kube05"
+      
+      containers:
+      - name: keycloak
+        image: 172.24.7.124:5000/keycloak/keycloak:19.0.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5080
+          name: http
+        - containerPort: 5443
+          name: https
+        command:
+        - /opt/keycloak/bin/kc.sh
+        args:
+        - start
+        - --log-level=info
+        - --log=console,file
+        env:
+        - name: JAVA_OPTS
+          value: "-Xms2500m -Xmx2500m"
+        - name: KC_LOG_LEVEL
+          value: "INFO"
+        - name: KC_LOG
+          value: "console,file"
+        - name: KC_HTTP_ENABLED
+          value: "true"
+        - name: KC_HTTP_PORT
+          value: "5080"
+        - name: KC_HTTPS_PORT
+          value: "5443"
+        - name: KC_HOSTNAME
+          value: "172.24.7.125:31543"
+        - name: KC_HOSTNAME_STRICT_BACKCHANNEL
+          value: "true"
+        - name: KC_PROXY
+          value: "edge"
+        - name: KC_FEATURES
+          value: "declarative-user-profile,token-exchange"
+        - name: KC_HTTPS_CERTIFICATE_FILE
+          value: "/opt/keycloak/conf/certs/keycloak-svc.crt.pem"
+        - name: KC_HTTPS_CERTIFICATE_KEY_FILE
+          value: "/opt/keycloak/conf/certs/keycloak-svc.key.pem"
+        - name: KEYCLOAK_ADMIN
+          value: "admin"
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-secret
+              key: KEYCLOAK_ADMIN_PASSWORD
+        - name: KC_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-secret
+              key: KC_DB_PASSWORD
+        - name: GATEWAY_INTEGRATOR_URL
+          value: "http://gateway.microservices.svc.cluster.local:10000/integrator"
+        
+        resources:
+          requests:
+            cpu: "1200m"
+            memory: "3Gi"
+          limits:
+            cpu: "1200m"
+            memory: "3Gi"
+        
+        volumeMounts:
+        - name: themes
+          mountPath: /opt/keycloak/themes
+        - name: exports
+          mountPath: /exports
+        - name: certs
+          mountPath: /etc/x509/https
+        - name: certs
+          mountPath: /opt/keycloak/conf/certs/keycloak-svc.crt.pem
+          subPath: keycloak-svc.crt.pem
+        - name: certs
+          mountPath: /opt/keycloak/conf/certs/keycloak-svc.key.pem
+          subPath: keycloak-svc.key.pem
+        - name: logs
+          mountPath: /opt/keycloak/data/log
+        - name: conf
+          mountPath: /opt/keycloak/conf/keycloak.conf
+          subPath: keycloak.conf
+        
+        livenessProbe:
+          tcpSocket:
+            port: 5080
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          timeoutSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 5080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+  
+  volumeClaimTemplates:
+  - metadata:
+      name: themes
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: manual
+      resources:
+        requests:
+          storage: 2Gi
+  - metadata:
+      name: exports
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: manual
+      resources:
+        requests:
+          storage: 2Gi
+  - metadata:
+      name: certs
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: manual
+      resources:
+        requests:
+          storage: 200Mi
+  - metadata:
+      name: logs
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: manual
+      resources:
+        requests:
+          storage: 2Gi
+  - metadata:
+      name: conf
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: manual
+      resources:
+        requests:
+          storage: 200Mi
