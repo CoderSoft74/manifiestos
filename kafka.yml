@@ -23,7 +23,7 @@ spec:
         kubernetes.io/hostname: kube01
       containers:
         - name: kafka-1
-          image: 172.24.7.124:5000/confluentinc/cp-kafka:6.0.1
+          image: confluentinc/cp-kafka:6.0.1
           resources:
             requests:
               memory: "1Gi"
