@@ -95,7 +95,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   local:
-    path: /drix/collective/uaa/keycloack1/themes
+    path: /collective/uaa/keycloack1/themes
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -121,7 +121,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   local:
-    path: /drix/collective/uaa/keycloack1/exports
+    path: /collective/uaa/keycloack1/exports
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -147,7 +147,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   local:
-    path: /drix/collective/uaa/keycloack1/cert
+    path: /collective/uaa/keycloack1/cert
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -173,7 +173,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   local:
-    path: /drix/collective/uaa/keycloack1/data/log
+    path: /collective/uaa/keycloack1/data/log
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -199,7 +199,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   local:
-    path: /drix/collective/uaa/keycloack1/conf
+    path: /collective/uaa/keycloack1/conf
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -239,7 +239,7 @@ spec:
       
       containers:
       - name: keycloak
-        image: 172.24.7.124:5000/keycloak/keycloak:19.0.1
+        image: keycloak/keycloak:19.0.1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5080
