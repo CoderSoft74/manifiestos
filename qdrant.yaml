@@ -27,7 +27,7 @@ spec:
       
       containers:
       - name: qdrant
-        image: 172.24.7.124:5000/qdrant/qdrant:v1.15.4
+        image: qdrant/qdrant:v1.15.4
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
