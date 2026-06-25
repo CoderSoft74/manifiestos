@@ -11,7 +11,7 @@ metadata:
   namespace: services-databases
 data:
   ORACLE_DATABASE: "orabd"
-  APP_USER: "PC_SOLICITUDE_PROD"
+  APP_USER: "USERS"
 ---
 apiVersion: v1
 kind: Secret
@@ -21,7 +21,7 @@ metadata:
 type: Opaque
 stringData:
   ORACLE_PASSWORD: "manager"
-  APP_USER_PASSWORD: "PC_SOLICITUDE"
+  APP_USER_PASSWORD: "USERS"
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -72,7 +72,7 @@ spec:
       
       initContainers:
       - name: fix-permissions
-        image: 172.24.7.124:5000/gvenzl/oracle-free:23
+        image: gvenzl/oracle-free:23
         command:
         - /bin/sh
         - -c
@@ -90,7 +90,7 @@ spec:
       
       containers:
       - name: oracle
-        image: 172.24.7.124:5000/gvenzl/oracle-free:23
+        image: gvenzl/oracle-free:23
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 1521
