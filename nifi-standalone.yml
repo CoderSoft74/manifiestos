@@ -21,7 +21,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/nifi-current/conf
+    path: /nifi/nifi-current/conf
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -45,7 +45,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/nifi-current/content_repository
+    path: /nifi/nifi-current/content_repository
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -69,7 +69,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/nifi-current/database_repository
+    path: /nifi/nifi-current/database_repository
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -93,7 +93,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/nifi-current/flowfile_repository
+    path: /nifi/nifi-current/flowfile_repository
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -117,7 +117,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/nifi-current/lib
+    path: /nifi/nifi-current/lib
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -141,7 +141,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/nifi-current/logs
+    path: /nifi/nifi-current/logs
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -165,7 +165,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/nifi-current/nar_extensions
+    path: /nifi/nifi-current/nar_extensions
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -189,7 +189,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/nifi-current/provenance_repository
+    path: /nifi/nifi-current/provenance_repository
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -213,7 +213,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/nifi-current/state
+    path: /nifi/nifi-current/state
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -238,7 +238,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   local:
-    path: /drix/2026/nifi/certs
+    path: /nifi/certs
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -479,7 +479,7 @@ spec:
 
       containers:
         - name: nifi
-          image: 172.24.7.124:5000/apache/nifi:2.1.0
+          image: nifi:2.1.0
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true
