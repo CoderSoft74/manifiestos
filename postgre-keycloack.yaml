@@ -29,7 +29,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   local:
-    path: /drix/collective/uaa/postgre3
+    path: /collective/uaa/postgre3
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -98,7 +98,7 @@ spec:
       
       containers:
       - name: postgresql
-        image: 172.24.7.124:5000/plataforma/it/postgre:10
+        image: postgre:10
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5432
